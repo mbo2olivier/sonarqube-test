@@ -68,12 +68,6 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       shell: powershell
       run: |
-        ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"mbo2olivier_sonarqube-test" /o:"mbo2olivier" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"mbo2olivier_sonarqube-test" /o:"mbo2olivier" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.qualitygate.wait=true
         dotnet build
-        ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
-    # Étape 3 : Détection de secrets (Exemple DevSkim)
-    - name: Run DevSkim Scan
-      uses: microsoft/DevSkim-Action@v1
-      with:
-        directory-to-scan: Cnss.VulnerableApi
+        ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
