@@ -1,0 +1,52 @@
+name: Security Quality Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build and Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Nécessaire pour SonarQube
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore Cnss.VulnerableApi/Cnss.VulnerableApi.csproj
+
+    - name: Build
+      run: dotnet build Cnss.VulnerableApi/Cnss.VulnerableApi.csproj --no-restore
+
+    # Étape 1 : Audit des vulnérabilités NuGet
+    - name: Dependency Security Audit
+      run: |
+        echo "Exécution de l'audit des dépendances..."
+        dotnet list Cnss.VulnerableApi/Cnss.VulnerableApi.csproj package --vulnerable --include-transitive
+
+    # Étape 2 : Scan SonarQube (Simulation de configuration)
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+        args: >
+          -Dsonar.projectKey=CnssAppSecTraining
+          -Dsonar.sources=Cnss.VulnerableApi
+          -Dsonar.dotnet.excludeTestProjects=true
+
+    # Étape 3 : Détection de secrets (Exemple DevSkim)
+    - name: Run DevSkim Scan
+      uses: microsoft/DevSkim-Action@v1
+      with:
+        directory-to-scan: Cnss.VulnerableApi

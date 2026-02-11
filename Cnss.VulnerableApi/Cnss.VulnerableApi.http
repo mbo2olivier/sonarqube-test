@@ -1,0 +1,6 @@
+@Cnss.VulnerableApi_HostAddress = http://localhost:5161
+
+GET {{Cnss.VulnerableApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
